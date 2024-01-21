@@ -29,9 +29,10 @@ jobs:
           echo "Version: $VERSION"
           echo "Setting as env variable"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          
-      - name: NPM publish
+
+      - name: NPM Publish
         run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
