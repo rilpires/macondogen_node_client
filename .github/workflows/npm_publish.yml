@@ -1,0 +1,48 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '20.x'
+      
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Getting version
+        id: get_version
+        run: |
+          export VERSION=$(sed -n 's/.*"version": "\(.*\)"/\1/p' package.json)
+          echo "Version: $VERSION"
+          echo "Setting as env variable"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          
+      - name: NPM publish
+        run: |
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
