@@ -1,0 +1,19 @@
+{
+  "name": "macondogen_node_client",
+  "version": "0.0.0",
+  "description": "macondogen client over TCP",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rilpires/macondogen_node_client.git"
+  },
+  "author": "rilpires (rilpires@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rilpires/macondogen_node_client/issues"
+  },
+  "homepage": "https://github.com/rilpires/macondogen_node_client#readme"
+}
