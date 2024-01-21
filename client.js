@@ -35,7 +35,7 @@ client.connect = async function (options) {
 };
 
 
-client.command = async (line) => {
+client.raw = async (line) => {
   if (tcp_client.destroyed) {
     throw new Error('Connection closed');
   }
@@ -59,9 +59,22 @@ client.command = async (line) => {
   return current_command;
 };
 
+client.command = async (p_command) => {
+  if (typeof p_command !== 'string') {
+    throw new Error('Commands must be strings');
+  }
+  const words = p_command.split(' ');
+  const command = words[0];
+  if (typeof (client[command]) == 'function') {
+    return client[command](...words.slice(1));
+  } else {
+    throw new Error('Invalid command ' + command);
+  }
+};
+
 // Returns an array of agent ids
 client.LIST_AGENTS = async () => {
-  const data = await client.command('LIST_AGENTS');
+  const data = await client.raw('LIST_AGENTS');
   const agents = data.toString().split('\n').filter((line) => {
     return (line.length > 0) && (numberRegex.test(line[0]));
   });
@@ -84,7 +97,7 @@ client.DESCRIBE_AGENT = async (p_agent_id) => {
   if (isNaN(agent_id)) {
     throw new Error('Invalid agent id');
   }
-  const data = await client.command(`DESCRIBE_AGENT ${agent_id}`);
+  const data = await client.raw(`DESCRIBE_AGENT ${agent_id}`);
   const lines = data.toString().split('\n').filter((line) => {
     return (line.length > 0);
   });
@@ -120,7 +133,7 @@ client.POP_EVENT = async (p_amount = 1) => {
   if (isNaN(amount) || (amount < 1)) {
     throw new Error('Invalid amount');
   }
-  const data = await client.command(`POP_EVENT ${amount}`);
+  const data = await client.raw(`POP_EVENT ${amount}`);
   const lines = data.toString().split('\n').filter((line) => {
     const words = line.split(' ');
     if (words.length < 3) {
@@ -155,9 +168,18 @@ client.PROCEED = async (p_duration) => {
   if (isNaN(duration)) {
     throw new Error('Invalid duration');
   }
-  const data = await client.command('PROCEED ' + duration);
+  const data = await client.raw('PROCEED ' + duration);
   return data.toString().toLowerCase().startsWith('ok');
 }
+
+client.SELECT_STORY = async (p_story_id) => {
+  const story_id = parseInt(p_story_id);
+  if (isNaN(story_id)) {
+    throw new Error('Invalid story id');
+  }
+  const data = await client.raw('SELECT_STORY ' + story_id);
+  return data.toString().toLowerCase().startsWith('ok');
+};
 
 client.JSON = async (p_json_str) => {
   let json_obj;
@@ -166,8 +188,9 @@ client.JSON = async (p_json_str) => {
   } catch (err) {
     throw new Error('Invalid JSON string');
   }
-  const data = await client.command('JSON ' + p_json_str);
+  const data = await client.raw('JSON ' + p_json_str);
   return data.toString().toLowerCase().startsWith('ok');
 }
+
 
 module.exports = client;
