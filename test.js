@@ -11,10 +11,10 @@ macondo.on('connected', () => {
 });
 
 
-macondo.DESCRIBE_AGENT(0).then((agent) => {
-  console.log('Agent: ', agent);
-});
-
-macondo.LIST_AGENTS().then((agents) => {
-  console.log('Agents: ', agents);
+setImmediate(async () => {
+  console.log(await macondo.LIST_AGENTS());
+  console.log(await macondo.DESCRIBE_AGENT(0));
+  console.log(await macondo.PROCEED(1));
+  console.log(await macondo.POP_EVENT(2222));
+  // console.log(await macondo.JSON("{}"));
 });
