@@ -4,7 +4,9 @@
   "description": "macondogen client over TCP",
   "main": "client.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsc && node ./dist/src/test.js",
+    "tsc": "tsc",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -12,6 +14,11 @@
   },
   "author": "rilpires (rilpires@gmail.com)",
   "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.6",
+    "eslint": "~8.56.0",
+    "typescript": "~5.3.3"
+  },
   "bugs": {
     "url": "https://github.com/rilpires/macondogen_node_client/issues"
   },
