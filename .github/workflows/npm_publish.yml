@@ -30,6 +30,10 @@ jobs:
           echo "Setting as env variable"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Build
+        run: |
+          npm run build
+
       - name: NPM Publish
         run: |
           echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc

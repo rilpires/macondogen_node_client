@@ -1,6 +1,6 @@
 import tcp from 'net';
 import {EventEmitter} from 'events';
-import { Agent, EmittedEvent, Story, EventTemplate, ParameterAlias } from './types';
+import { Agent, EmittedEvent, Story, EventTemplate, ParameterAlias, RelationSet } from './types';
 
 const numberRegex = /[0-9]+/;
 
@@ -8,10 +8,14 @@ export class MacondoClient extends EventEmitter {
 
   tcp_client = new tcp.Socket();
   current_command : Promise<any>|null = null;
-  
-  constructor() {
+  timeout_ms = 10000;
+
+  constructor(options?:{
+    timeout?: number;
+  }) {
     super();
     const self = this;
+    this.timeout_ms = options?.timeout || this.timeout_ms;
     self.tcp_client.on('data', (data:string) => {
       super.emit('data', data);
     });
@@ -45,6 +49,7 @@ export class MacondoClient extends EventEmitter {
   };
   
   private raw = async (line:string) : Promise<string> => {
+    let self = this;
     if (this.tcp_client.destroyed) {
       throw new Error('Connection closed');
     }
@@ -57,7 +62,7 @@ export class MacondoClient extends EventEmitter {
     this.current_command = new Promise<string>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Timeout on command ' + line));
-      }, 5000);
+      }, self.timeout_ms);
       this.tcp_client.once('data', (data:string) => {
         clearTimeout(timeout);
         this.current_command = null;
@@ -225,29 +230,76 @@ export class MacondoClient extends EventEmitter {
     const data = await this.raw('EXIT');
     return true;
   }
-  public async UPDATE_AGENT_PARAMETER(){
-    
+  public async UPDATE_AGENT_PARAMETER(agent_id:number, param:string, value:number) : Promise<boolean> {
+    const data = await this.raw(`UPDATE_AGENT_PARAMETER ${agent_id} ${param} ${value}`);
+    return data.toString().toLowerCase().startsWith('ok');
   }
-  public async UPDATE_AGENT_RELATION(){
-    
+  public async UPDATE_AGENT_RELATION(agent_id:number, other_agent_id:number, parameter:string, value:number) : Promise<boolean> {
+    const data = await this.raw(`UPDATE_AGENT_RELATION ${agent_id} ${other_agent_id} ${parameter} ${value}`);
+    return data.toString().toLowerCase().startsWith('ok');
   }
-  public async UPDATE_AGENT_LABEL(){
-    
+  public async UPDATE_AGENT_LABEL(agent_id:number, key:string, value:string) : Promise<boolean> {
+    const data = await this.raw(`UPDATE_AGENT_LABEL ${agent_id} ${key} ${value}`);
+    return data.toString().toLowerCase().startsWith('ok');
   }
-  public async ADD_AGENT_TAG(){
-    
+  public async ADD_AGENT_TAG(agent_id:number, tag:string) : Promise<boolean> {
+    const data = await this.raw(`ADD_AGENT_TAG ${agent_id} ${tag}`);
+    return data.toString().toLowerCase().startsWith('ok');
   }
-  public async REMOVE_AGENT_TAG(){
-    
+  public async REMOVE_AGENT_TAG(agent_id:number, tag:string) : Promise<boolean> {
+    const data = await this.raw(`REMOVE_AGENT_TAG ${agent_id} ${tag}`);
+    return data.toString().toLowerCase().startsWith('ok');
   }
-  public async DESCRIBE_AGENT_RELATION(){
-    
+  public async DESCRIBE_AGENT_RELATION(agent_id:number, other_agent_id:number) : Promise<RelationSet> {
+    const data = await this.raw(`DESCRIBE_AGENT_RELATION ${agent_id} ${other_agent_id}`);
+    const lines = data.toString().split('\n').filter((line:string) => {
+      return line.startsWith('RELATION ');
+    });
+    let relation_set : RelationSet = {};
+    lines.forEach((line:string) => {
+      const parts = line.split(' ');
+      relation_set[parts[1]] = parseFloat(parts[2]);
+    });
+    return relation_set;
   }
-  public async LIST_EVENT_TEMPLATES(){
-    
+  public async LIST_EVENT_TEMPLATES() : Promise<number[]> {
+    const data = await this.raw('LIST_EVENT_TEMPLATES');
+    const lines = data.toString().split('\n').filter((line:string) => {
+      return (line.length > 0) && (numberRegex.test(line[0]));
+    });
+    return lines.map((line:string) => {
+      return parseInt(line);
+    });
   }
-  public async DESCRIBE_EVENT_TEMPLATE(){
-    
+  public async DESCRIBE_EVENT_TEMPLATE(template_id:number) : Promise<EventTemplate> {
+    const data = await this.raw('DESCRIBE_EVENT_TEMPLATE ' + template_id);
+    let ret : EventTemplate = {
+      id: template_id,
+      name: '',
+      type: 'self',
+      labels: {},
+      tags: new Set(),
+      expression: '',
+    };
+    const lines = data.toString().split('\n').filter((line:string) => {
+      if (line.startsWith('NAME ')) {
+        ret.name = line.split(' ').slice(1).join(' ');
+      } else if (line.startsWith('EXPRESSION ')) {
+        ret.expression = line.split(' ').slice(1).join(' ');
+      } else if (line.startsWith('LABEL ')) {
+        const parts = line.split(':');
+        const label_name = parts[0].split(' ')[1];
+        const label_value = parts[1].trim();
+        ret.labels[label_name] = label_value;
+      } else if (line.startsWith('TAG ')) {
+        const parts = line.split(' ');
+        ret.tags.add(parts[1]);
+      } else if (line.startsWith('TYPE ')) {
+        const parts = line.split(' ');
+        ret.type = parts[1] as any;
+      }
+    });
+    return ret;
   }
   
 }

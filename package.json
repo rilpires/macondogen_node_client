@@ -2,7 +2,7 @@
   "name": "macondogen_node_client",
   "version": "0.0.3",
   "description": "macondogen client over TCP",
-  "main": "client.js",
+  "main": "dist/src/client.js",
   "scripts": {
     "test": "tsc && node ./dist/src/test.js",
     "tsc": "tsc",

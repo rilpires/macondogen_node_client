@@ -47,3 +47,4 @@ export type Trigger = {
   expressions: Record<string, string>;
 };
 
+export type RelationSet = Record<string, number>;
