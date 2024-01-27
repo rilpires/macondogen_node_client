@@ -27,5 +27,6 @@ client.on('connected', () => {
     console.log(await client.DESCRIBE_AGENT(0));
     console.log(await client.REMOVE_AGENT_TAG(0, "test_tag"));
     console.log(await client.DESCRIBE_AGENT(0));
+    console.log(await client.DESCRIBE_EVENT_TEMPLATE(0));
   });
 });

@@ -25,7 +25,7 @@ jobs:
       - name: Getting version
         id: get_version
         run: |
-          export VERSION=$(sed -n 's/.*"version": "\(.*\)"/\1/p' package.json)
+          export VERSION=$(sed -n 's/.*"version": "\([0-9.]*\).*"/\1/p' package.json)
           echo "Version: $VERSION"
           echo "Setting as env variable"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
