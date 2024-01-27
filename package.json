@@ -1,6 +1,6 @@
 {
   "name": "macondogen_node_client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "macondogen client over TCP",
   "main": "dist/src/client.js",
   "scripts": {
