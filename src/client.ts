@@ -165,7 +165,6 @@ export class MacondoClient extends EventEmitter {
     });
   };
   
-  // Returns a boolean indicating if the event was pushed
   public async PROCEED(p_duration:number) : Promise<boolean> {
     const duration = p_duration;
     if (isNaN(duration)) {
@@ -184,7 +183,6 @@ export class MacondoClient extends EventEmitter {
     return data.toString().toLowerCase().startsWith('ok');
   };
   
-  // Returns a boolean indicating if the command was successful
   public async JSON(json:string|object) : Promise<boolean> {
     let p_json_str = '';
     if (typeof json === 'string') {
@@ -211,6 +209,10 @@ export class MacondoClient extends EventEmitter {
   }
   public async DEL_STORY(id:number) : Promise<boolean> {
     const data = await this.raw('DEL_STORY');
+    return data.toString().toLowerCase().startsWith('ok');
+  }
+  public async CLEAR() : Promise<boolean> {
+    const data = await this.raw('CLEAR');
     return data.toString().toLowerCase().startsWith('ok');
   }
   public async LIST_PARAMETER_ALIASES() : Promise<ParameterAlias[]> {
